@@ -135,6 +135,22 @@ h2.q{font-size:28px;line-height:1.15;margin:4px 0 0;text-wrap:balance}
 .foot{color:var(--muted);font-size:13px;text-align:center;margin-top:auto;padding-top:10px}
 .foot b{color:var(--ink)}
 .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;word-break:break-all}
+.pose{width:100%;max-width:380px;height:auto;display:block;margin:0 auto;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r)}
+.pose .obj{fill:var(--bg);stroke:var(--muted);stroke-width:2}
+.pose .stool{fill:var(--brand-soft);stroke:var(--brand-2);stroke-width:2}
+.pose .fig{stroke:var(--brand);stroke-linecap:round;fill:none}
+.pose .head{fill:var(--brand)}
+.pose .floor{stroke:var(--line);stroke-width:3}
+.pose .guide{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 5}
+.pose .badge{fill:var(--ok)} .pose .bt{fill:var(--surface);font:700 13px var(--font)}
+.pose .lbl{fill:var(--muted);font:700 11px var(--font)}
+.steps3{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.steps3 li{display:flex;gap:10px;align-items:center;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;font-weight:700}
+.steps3 li i{font-style:normal;flex:0 0 26px;height:26px;border-radius:50%;background:var(--ok);color:var(--surface);display:grid;place-items:center;font-size:14px}
+.src{font-size:12.5px;color:var(--muted);margin:0}
+.me{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:15px}
+.me b{color:var(--ink)}
+.linkbtn{border:0;background:none;color:var(--brand);font-weight:700;text-decoration:underline;cursor:pointer;padding:4px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:700;z-index:20;max-width:calc(100% - 32px)}
 @media (prefers-reduced-motion: no-preference){.choice,.big,.btn{transition:transform .08s ease}.screen{animation:in .18s ease-out}@keyframes in{from{opacity:.85;transform:translateY(4px)}to{opacity:1;transform:none}}}
 </style>
@@ -184,17 +200,44 @@ const connected = ()=>!!cfg.api;
 
 let log = store.get("log",[]);           // all entries made on this phone (kept 14 days)
 let server = store.get("server",null);   // last status from the Google Sheet
-let initials = store.get("initials","");
+let initials = store.get("initials","");   // support worker's full name on this phone
+let nameAt = store.get("nameAt",0);
+// a shared work phone may change hands between shifts, so the name is asked again after 10 hours
+function curName(){return initials && (Date.now()-nameAt)<10*3600e3 ? initials : ""}
+function setName(v){initials=String(v||"").replace(/\s+/g," ").trim();nameAt=Date.now();store.set("initials",initials);store.set("nameAt",nameAt)}
+function nameField(){return '<div class="field"><label for="f-ini">Your full name</label><input id="f-ini" autocomplete="name" autocapitalize="words" maxlength="40" value="'+esc(curName())+'" placeholder="First and last name"><p class="hint">So the team knows who recorded this. Change it if this is not you.</p></div>'}
+const okName=v=>String(v||"").trim().length>=3;
+// Poo sitting position — Super Kids plan (2026) p.2 step 3; footstool detail from Renee Collins email (Oct 2026)
+const POSE='<svg class="pose" viewBox="0 0 340 250" role="img" aria-label="Side view: Matty sits on the toilet with both feet on a footstool, knees higher than his hips, leaning forward with his elbows on his knees.">'
+ +'<line class="floor" x1="10" y1="229" x2="330" y2="229"/>'
+ +'<rect class="obj" x="26" y="46" width="36" height="90" rx="7"/>'
+ +'<path class="obj" d="M58 118 H180 Q186 120 182 128 Q170 170 140 182 L146 228 H96 L102 182 Q70 170 60 128 Z"/>'
+ +'<rect class="obj" x="54" y="110" width="130" height="9" rx="4"/>'
+ +'<rect class="stool" x="204" y="180" width="88" height="48" rx="9"/>'
+ +'<line class="guide" x1="96" y1="106" x2="236" y2="106"/><text class="lbl" x="240" y="110">hips</text>'
+ +'<line class="fig" x1="112" y1="104" x2="158" y2="48" stroke-width="30"/>'
+ +'<line class="fig" x1="112" y1="104" x2="204" y2="84" stroke-width="26"/>'
+ +'<line class="fig" x1="204" y1="84" x2="236" y2="174" stroke-width="20"/>'
+ +'<line class="fig" x1="236" y1="174" x2="270" y2="177" stroke-width="13"/>'
+ +'<line class="fig" x1="160" y1="54" x2="196" y2="86" stroke-width="13"/>'
+ +'<line class="fig" x1="196" y1="86" x2="224" y2="74" stroke-width="11"/>'
+ +'<circle class="head" cx="172" cy="26" r="17"/>'
+ +'<circle class="badge" cx="216" cy="58" r="12"/><text class="bt" x="216" y="63" text-anchor="middle">1</text>'
+ +'<circle class="badge" cx="100" cy="66" r="12"/><text class="bt" x="100" y="71" text-anchor="middle">2</text>'
+ +'<circle class="badge" cx="250" cy="206" r="12"/><text class="bt" x="250" y="211" text-anchor="middle">3</text>'
+ +'</svg>';
+const POSE_STEPS='<ol class="steps3"><li><i>1</i>Knees a little higher than his hips</li><li><i>2</i>Leaning forward (elbows on knees is OK)</li><li><i>3</i>Both feet flat on the footstool</li></ol>'
+ +'<p class="src">Super Kids Toilet Training Plan (2026), p.2 step 3: feet up on the step and lean forward. Knees above hips: Renee Collins, Oct 2026.</p>';
 let level = store.get("level",1);
 
 /* demo examples so the preview shows a working state (cleared once connected) */
 if(!connected() && !log.length){
   const now=Date.now(), m=60000;
   log=[
-    mk({kind:"trip",why:"wake",what:"poo",reward:"yes",ts:now-245*m,initials:"EX",demo:true}),
-    mk({kind:"trip",why:"timer",what:"wee",reward:"yes",ts:now-150*m,initials:"EX",demo:true}),
-    mk({kind:"trip",why:"timer",what:"nothing",reward:"no",ts:now-62*m,initials:"EX",demo:true}),
-    mk({kind:"trip",why:"timer",what:"wee",reward:"yes",ts:now-44*m,initials:"EX",demo:true})
+    mk({kind:"trip",why:"wake",what:"poo",reward:"yes",ts:now-245*m,initials:"Example worker",position:"yes",demo:true}),
+    mk({kind:"trip",why:"timer",what:"wee",reward:"yes",ts:now-150*m,initials:"Example worker",demo:true}),
+    mk({kind:"trip",why:"timer",what:"nothing",reward:"no",ts:now-62*m,initials:"Example worker",demo:true}),
+    mk({kind:"trip",why:"timer",what:"wee",reward:"yes",ts:now-44*m,initials:"Example worker",demo:true})
   ];
 }
 if(connected() && log.some(x=>x.demo)){log=log.filter(x=>!x.demo);save();}
@@ -283,7 +326,7 @@ async function sync(){
 function toRow(e){
   if(e.kind==="level") return {id:e.id,kind:"level",date:e.date,time:e.time,level:e.level,initials:e.initials,note:e.note,device:dev()};
   if(e.kind==="daily") return {id:e.id,kind:"daily",date:e.date,time:e.time,osmalax:e.osmalax==="yes"?"✅ Yes":"❌ No",drinks:e.drinks,level:e.level,initials:e.initials,note:e.note,device:dev()};
-  return {id:e.id,kind:"trip",ts:e.ts,date:e.date,time:e.time,shift:e.shift,why:WHY[e.why].v,what:WHAT[e.what].v,reward:e.reward==="yes"?"⭐ Yes":"✋ No",level:e.level,initials:e.initials,note:e.note,check:check(e),device:dev()};
+  return {id:e.id,kind:"trip",ts:e.ts,date:e.date,time:e.time,shift:e.shift,why:WHY[e.why].v,what:WHAT[e.what].v,reward:e.reward==="yes"?"⭐ Yes":"✋ No",level:e.level,initials:e.initials,note:e.note,check:check(e),device:dev(),position:e.position==="yes"?"✅ Yes":e.position==="no"?"❌ Not quite":""};
 }
 function dev(){let d=store.get("device","");if(!d){d="phone-"+Math.random().toString(36).slice(2,6);store.set("device",d)}return d}
 window.addEventListener("online",()=>{sync();render()});
@@ -322,11 +365,13 @@ function homeView(){
       +'<span class="v">'+nice(nd.ts)+(due?'':' <span style="font-size:17px;color:var(--muted)">in '+(mins>=60?Math.floor(mins/60)+" h "+(mins%60)+" min":mins+" min")+'</span>')+'</span>'
       +'<span class="h">'+esc(nd.why)+'. Keep using the timer on his iPad / Google Home.</span></div>';
   }
+  h+='<div class="me">👤 '+(curName()?'Recording as <b>'+esc(curName())+'</b><button class="linkbtn" id="b-notme">Not you?</button>':'You will be asked for your name when you save')+'</div>';
   h+='<button class="big" id="b-trip"><span class="e">🚽</span><span><b>Record a toilet trip</b><span>or an accident</span></span></button>';
   h+='<div class="stats">'
     +'<div class="stat'+(st.streak>=3?' good':'')+'"><div class="n">'+st.streak+'</div><div class="l">wees in a row<br>(3 = level up)</div></div>'
     +'<div class="stat'+(st.goal1>=10?' good':'')+'"><div class="n">'+Math.min(st.goal1,10)+'/10</div><div class="l">Goal 1<br>timer wees</div></div>'
     +'<div class="stat'+(st.acc>5?' bad':'')+'"><div class="n">'+st.acc+'</div><div class="l">accidents<br>today</div></div></div>';
+  h+='<button class="big alt" id="b-sit"><span class="e">🚽</span><span><b>How Matty sits for a poo</b><span>Picture guide — feet on the stool</span></span></button>';
   h+='<button class="big alt" id="b-daily"><span class="e">💊</span><span><b>Daily: Osmalax & drinks</b><span>Once a day, afternoon</span></span></button>';
   h+='<button class="big alt" id="b-hist"><span class="e">📋</span><span><b>Today on this phone</b><span>'+todayCounts().trips+' trips recorded</span></span></button>';
   h+='<p class="foot">Super Kids Toilet Training Plan (2026) · Questions: Renee Collins, BCBA · <b>'+RENEE+'</b></p>';
@@ -334,6 +379,8 @@ function homeView(){
   $("#b-trip").onclick=()=>{draft={kind:"trip",level:stats().level};go("why")};
   $("#b-daily").onclick=()=>{draft={kind:"daily",level:stats().level,osmalax:null,drinks:null};go("daily")};
   $("#b-hist").onclick=()=>go("hist");
+  $("#b-sit").onclick=()=>go("howsit");
+  const nm=$("#b-notme"); if(nm) nm.onclick=()=>{nameAt=0;store.set("nameAt",0);toast("Enter your name when you save");render()};
   $("#b-set").onclick=()=>go("settings");
   const up=$("#b-up"); if(up) up.onclick=()=>{level=stats().level+1;store.set("level",level);if(server){server.level=level;server.streak=0;store.set("server",server)}
     log.push(mk({kind:"level",level:level,initials:initials||"",note:"Moved up to Level "+level}));save();sync();toast("Now on Level "+level+" — "+LEVELS[level].label);render()};
@@ -353,14 +400,28 @@ function whyView(){
   h+='</div><p class="hint">🙋 Matty asked = he used his sign or PLQ. That is Goal 2 — a big win!</p>';
   app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
   wire(()=>{draft=null;go("home")});
-  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.why=b.dataset.k;go(draft.why==="accident"?"acc":"what")});
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.why=b.dataset.k;go(draft.why==="accident"?"acc":draft.why==="wake"?"posture":"what")});
 }
+function posture(){
+  let h=stepHead(2,5)+'<h2 class="q">Is Matty sitting like this?</h2>'+POSE+POSE_STEPS+'<div class="grid">'
+    +choice("yes",{e:"✅",t:"Yes",s:"All 3 are right"},"ok")+choice("no",{e:"🔄",t:"Not quite",s:"Fix it, or add a note"},"no")+'</div>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  wire(()=>go("why"));
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.position=b.dataset.k;go("what")});
+}
+function howSit(){
+  let h='<div class="top"><button class="iconbtn" id="b-back" aria-label="Back">←</button><div class="who"><h1>How Matty sits for a poo</h1><p>Check this at every poo sit</p></div></div>'+POSE+POSE_STEPS
+    +'<div class="tip"><span class="e">🎵</span><div><b>While he sits</b>Play his favourite songs on the speaker. A quiet activity is OK, or he can just sit alone. No technology.</div></div>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  $("#b-back").onclick=()=>go("home");
+}
+const off=()=>draft&&draft.why==="wake"?1:0;
 function whatView(){
-  let h=stepHead(2,4)+'<h2 class="q">What happened on the toilet?</h2><div class="grid">';
+  let h=stepHead(2+off(),4+off())+'<h2 class="q">What happened on the toilet?</h2><div class="grid">';
   h+=choice("wee",WHAT.wee,"ok")+choice("poo",WHAT.poo,"ok")+choice("both",WHAT.both,"ok")+choice("nothing",WHAT.nothing,"no");
   h+='</div><p class="hint">He sits for 2–5 minutes. Music or a quiet toy is OK — no iPad until after the wee.</p>';
   app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
-  wire(()=>go("why"));
+  wire(()=>go(draft.why==="wake"?"posture":"why"));
   app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.what=b.dataset.k;
     if(draft.what==="nothing"){draft.reward="no";go("who")}else go("reward")});
 }
@@ -383,7 +444,7 @@ function finishView(){
     if(b.dataset.k==="yes"){go("reward")}else{draft.reward="no";go("who")}});
 }
 function rewardView(){
-  let h=stepHead(3,4)+'<div class="tip ok"><span class="e">⭐</span><div><b>Give his reward now</b>He chooses the iPad or iPod, for 10–20 minutes.</div></div>'
+  let h=stepHead(3+off(),4+off())+'<div class="tip ok"><span class="e">⭐</span><div><b>Give his reward now</b>He chooses the iPad or iPod, for 10–20 minutes.</div></div>'
     +'<h2 class="q">Did he get his reward?</h2><div class="grid">'
     +choice("yes",{e:"📱",t:"Yes",s:"iPad or iPod"},"ok")+choice("no",{e:"✋",t:"No",s:"Say why in the note"},"no")+'</div>';
   app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
@@ -392,11 +453,11 @@ function rewardView(){
 }
 function whoView(){
   const noReward = draft.reward==="no" && (draft.what==="nothing"||draft.what==="big");
-  let h=stepHead(4,4);
+  let h=stepHead(4+off(),4+off());
   if(draft.what==="nothing") h+='<div class="tip no"><span class="e">🔁</span><div><b>No reward this time</b>Calm voice, no telling off. He goes back to his activity. Try again in '+(draft.why==="wake"?"15 min":"15–20 min")+'.</div></div>';
   if(draft.what==="big") h+='<div class="tip no"><span class="e">🧼</span><div><b>No reward for a big accident</b>Clean and change him, then carry on with the timer.</div></div>';
   h+='<h2 class="q">Check and save</h2>';
-  h+='<div class="field"><label for="f-ini">Your initials</label><input id="f-ini" autocomplete="off" autocapitalize="characters" maxlength="4" value="'+esc(initials)+'" placeholder="e.g. SB"></div>';
+  h+=nameField();
   h+='<div class="field"><label>Level now</label><div class="chips" id="f-lvl">';
   for(const k of [1,2,3,4]) h+='<button class="chip" data-l="'+k+'" aria-pressed="'+(draft.level===k)+'">Level '+k+'<small>'+LEVELS[k].label+'</small></button>';
   h+='</div></div><div class="field"><label for="f-note">Note (only if something was different)</label><textarea id="f-note" maxlength="200" placeholder="Optional">'+esc(draft.note||"")+'</textarea></div>';
@@ -406,11 +467,11 @@ function whoView(){
   wire(back); $("#b-back2").onclick=back;
   app.querySelectorAll("#f-lvl .chip").forEach(b=>b.onclick=()=>{draft.level=+b.dataset.l;app.querySelectorAll("#f-lvl .chip").forEach(c=>c.setAttribute("aria-pressed",c===b))});
   const ini=$("#f-ini"), sv=$("#b-save");
-  const okIni=()=>{sv.disabled=!ini.value.trim()}; ini.oninput=okIni; okIni();
+  const okIni=()=>{sv.disabled=!okName(ini.value)}; ini.oninput=okIni; okIni();
   sv.onclick=()=>{
-    initials=ini.value.trim().toUpperCase();store.set("initials",initials);
+    setName(ini.value);
     draft.note=$("#f-note").value.trim();
-    const e=mk({kind:"trip",why:draft.why,what:draft.what,reward:draft.reward,level:draft.level,initials,note:draft.note});
+    const e=mk({kind:"trip",why:draft.why,what:draft.what,reward:draft.reward,level:draft.level,initials,note:draft.note,position:draft.why==="wake"?(draft.position||""):""});
     if(draft.level!==level){level=draft.level;store.set("level",level)}
     log.push(e);save();sync();draft={saved:e};go("done");
   };
@@ -437,17 +498,18 @@ function dailyView(){
     +choice("yes",{e:"💊",t:"Yes, given"},draft.osmalax==="yes"?"ok":"")+choice("no",{e:"❌",t:"Not given",s:"Add a note why"},draft.osmalax==="no"?"bad":"")+'</div>';
   h+='<div class="field"><label>Drinks so far today (aim 1.5–2 L)</label><div class="chips" id="f-dr">';
   for(const v of [0.5,1,1.5,2,2.5]) h+='<button class="chip" data-d="'+v+'" aria-pressed="'+(draft.drinks===v)+'">'+(v===2.5?"2.5+":v)+' L</button>';
-  h+='</div></div><div class="field"><label for="f-ini">Your initials</label><input id="f-ini" autocomplete="off" autocapitalize="characters" maxlength="4" value="'+esc(initials)+'" placeholder="e.g. SB"></div>';
+  h+='</div></div>'+nameField();
   h+='<div class="field"><label for="f-note">Handover note</label><textarea id="f-note" maxlength="300" placeholder="Optional — e.g. moved to Level 2 today">'+esc(draft.note||"")+'</textarea></div>';
   h+='<div class="row"><button class="btn" id="b-save">Save daily check</button></div>';
   app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
-  const keep=()=>{draft.note=$("#f-note").value;initials=$("#f-ini").value.trim().toUpperCase()};
+  const keep=()=>{draft.note=$("#f-note").value;draft.name=$("#f-ini").value};
   wire(()=>{draft=null;go("home")});
   app.querySelectorAll("#f-osm .choice").forEach(b=>b.onclick=()=>{keep();draft.osmalax=b.dataset.k;render()});
   app.querySelectorAll("#f-dr .chip").forEach(b=>b.onclick=()=>{keep();draft.drinks=+b.dataset.d;render()});
   const sv=$("#b-save"), ini=$("#f-ini");
-  const ok=()=>{sv.disabled=!(draft.osmalax&&ini.value.trim())}; ini.oninput=ok; ok();
-  sv.onclick=()=>{keep();store.set("initials",initials);
+  if(draft.name!=null) ini.value=draft.name;
+  const ok=()=>{sv.disabled=!(draft.osmalax&&okName(ini.value))}; ini.oninput=ok; ok();
+  sv.onclick=()=>{keep();setName(draft.name);
     const e=mk({kind:"daily",osmalax:draft.osmalax,drinks:draft.drinks,level:draft.level,initials,note:draft.note.trim()});
     log.push(e);save();sync();toast(draft.osmalax==="yes"?"Daily check saved":"Saved — tell the team leader Osmalax was not given");draft=null;go("home")};
 }
@@ -461,7 +523,7 @@ function histView(){
     const st=e.demo?'<span class="s demo">example</span>':e.sent?'<span class="s ok">✓ sent</span>':'<span class="s wait">⏳ waiting</span>';
     if(e.kind==="level") h+='<div class="item"><span class="t">'+nice(e.ts)+'</span><span class="w">🔼 Level '+e.level+'<small>Moved up · '+esc(e.initials)+'</small></span>'+st+'</div>';
     else if(e.kind==="daily") h+='<div class="item"><span class="t">'+nice(e.ts)+'</span><span class="w">💊 Daily check<small>Osmalax '+(e.osmalax==="yes"?"given":"not given")+(e.drinks?" · drinks "+e.drinks+" L":"")+' · '+esc(e.initials)+'</small></span>'+st+'</div>';
-    else h+='<div class="item"><span class="t">'+nice(e.ts)+'</span><span class="w">'+WHAT[e.what].e+' '+WHAT[e.what].t+'<small>'+WHY[e.why].t+' · '+(e.reward==="yes"?"⭐ reward":"no reward")+' · L'+e.level+' · '+esc(e.initials)+(check(e)!=="✓"?" · "+check(e):"")+'</small></span>'+st+'</div>';
+    else h+='<div class="item"><span class="t">'+nice(e.ts)+'</span><span class="w">'+WHAT[e.what].e+' '+WHAT[e.what].t+'<small>'+WHY[e.why].t+' · '+(e.reward==="yes"?"⭐ reward":"no reward")+' · L'+e.level+(e.position?' · position '+(e.position==="yes"?"✓":"✗"):'')+' · '+esc(e.initials)+(check(e)!=="✓"?" · "+check(e):"")+'</small></span>'+st+'</div>';
   }
   h+='</div>';
   if(connected()&&log.some(x=>!x.sent&&!x.demo)) h+='<button class="btn" id="b-sync">Send now</button>';
@@ -472,7 +534,7 @@ function histView(){
 
 function settingsView(){
   let h='<div class="top"><button class="iconbtn" id="b-back" aria-label="Back">←</button><div class="who"><h1>Settings</h1><p>For the team leader</p></div></div>';
-  h+='<div class="field"><label for="f-ini">Initials on this phone</label><input id="f-ini" maxlength="4" value="'+esc(initials)+'"></div>';
+  h+='<div class="field"><label for="f-ini">Name of the worker using this phone</label><input id="f-ini" maxlength="40" autocapitalize="words" value="'+esc(curName())+'"></div>';
   h+='<div class="sec">Google Sheet connection</div>';
   h+='<p class="hint">'+(connected()?'✓ Connected. Entries go to the Sheet.':'Not connected. Open the staff link the team leader sent you, or paste the details below.')+'</p>';
   h+='<div class="field"><label for="f-api">Web app link (from Apps Script)</label><input id="f-api" class="mono" placeholder="https://script.google.com/macros/s/…/exec" value="'+esc(cfg.api)+'"></div>';
@@ -482,14 +544,14 @@ function settingsView(){
   if(log.some(x=>x.demo)) h+='<button class="btn ghost" id="b-cleardemo">Remove example entries</button>';
   app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
   $("#b-back").onclick=()=>go("home");
-  $("#b-savecfg").onclick=()=>{initials=$("#f-ini").value.trim().toUpperCase();store.set("initials",initials);
+  $("#b-savecfg").onclick=()=>{if(okName($("#f-ini").value))setName($("#f-ini").value);
     cfg={api:$("#f-api").value.trim(),key:$("#f-key").value.trim()};store.set("cfg",cfg);
     if(connected()){log=log.filter(x=>!x.demo);save()} toast(connected()?"Saved — connecting…":"Saved");sync();go("home")};
   const cd=$("#b-cleardemo"); if(cd) cd.onclick=()=>{log=log.filter(x=>!x.demo);save();toast("Examples removed");go("home")};
 }
 
 function render(){
-  ({home:homeView,why:whyView,what:whatView,acc:accView,finish:finishView,reward:rewardView,who:whoView,done:doneView,daily:dailyView,hist:histView,settings:settingsView}[view]||homeView)();
+  ({home:homeView,posture:posture,howsit:howSit,why:whyView,what:whatView,acc:accView,finish:finishView,reward:rewardView,who:whoView,done:doneView,daily:dailyView,hist:histView,settings:settingsView}[view]||homeView)();
 }
 render(); sync();
 setInterval(()=>{if(view==="home")render()},30000);

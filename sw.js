@@ -1,5 +1,5 @@
 // Offline cache for Matty's Toilet Diary. Bump VERSION when you upload a new index.html.
-const VERSION = 'mtd-v2';
+const VERSION = 'mtd-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -1,0 +1,15 @@
+{
+  "name": "Matty's Toilet Diary",
+  "short_name": "Matty Toilet",
+  "description": "Record Matty's toilet trips — works offline and sends to the team Google Sheet.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F2FA",
+  "theme_color": "#5B2380",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

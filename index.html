@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Matty Toilet Diary</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#5B2380">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Matty Toilet">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one-thumb phone app — a status header, one question per screen, big picture buttons in a 2-column grid */
+:root{
+  --bg:#F6F2FA; --surface:#FFFFFF; --ink:#24132F; --muted:#6C5F78; --line:#E3D9EC;
+  --brand:#5B2380; --brand-2:#7E46A8; --brand-soft:#ECE2F4;
+  --ok:#1F7A3D; --ok-bg:#E1F3E5; --warn:#94590A; --warn-bg:#FFF0D9; --bad:#A3241C; --bad-bg:#FBE3E1;
+  --font:"Atkinson Hyperlegible", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17101D; --surface:#221830; --ink:#F3ECF8; --muted:#B4A6C2; --line:#3A2C48;
+  --brand:#B98BE0; --brand-2:#9A68C6; --brand-soft:#2F2140;
+  --ok:#7FD69A; --ok-bg:#183323; --warn:#F2BE6B; --warn-bg:#3A2A12; --bad:#F59D96; --bad-bg:#3D1916; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17101D; --surface:#221830; --ink:#F3ECF8; --muted:#B4A6C2; --line:#3A2C48;
+  --brand:#B98BE0; --brand-2:#9A68C6; --brand-soft:#2F2140;
+  --ok:#7FD69A; --ok-bg:#183323; --warn:#F2BE6B; --warn-bg:#3A2A12; --bad:#F59D96; --bad-bg:#3D1916; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit}
+.app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 28px;gap:14px}
+/* header */
+.top{display:flex;align-items:center;gap:10px}
+.who{flex:1;min-width:0}
+.who h1{font-size:22px;margin:0;line-height:1.1;text-wrap:balance}
+.who p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700;border:1.5px solid var(--line);background:var(--surface);white-space:nowrap}
+.pill.lvl{background:var(--brand);color:#fff;border-color:var(--brand)}
+:root[data-theme="dark"] .pill.lvl{color:#17101D}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill.lvl{color:#17101D}}
+.pill.sync-ok{color:var(--ok)} .pill.sync-wait{color:var(--warn);background:var(--warn-bg);border-color:transparent} .pill.sync-demo{color:var(--muted)}
+.iconbtn{border:0;background:transparent;font-size:24px;padding:6px;border-radius:12px;cursor:pointer}
+.iconbtn:focus-visible,.big:focus-visible,.choice:focus-visible,.btn:focus-visible,.chip:focus-visible{outline:3px solid var(--brand-2);outline-offset:2px}
+/* banners */
+.banner{border-radius:var(--r);padding:12px 14px;font-weight:700;display:flex;gap:10px;align-items:flex-start}
+.banner .e{font-size:22px;line-height:1}
+.banner.demo{background:var(--brand-soft);color:var(--ink);font-weight:400;font-size:15px}
+.banner.up{background:var(--ok-bg);color:var(--ok)}
+.banner.bad{background:var(--bad-bg);color:var(--bad)}
+.banner .sub{display:block;font-weight:400;color:var(--ink);font-size:15px;margin-top:2px}
+.banner .act{margin-top:8px}
+/* next toilet card */
+.next{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center}
+.next .e{font-size:40px;grid-row:span 2}
+.next .k{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.next .v{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.next .h{grid-column:1/-1;color:var(--muted);font-size:14px;margin-top:6px}
+.next.due{border-color:var(--warn);background:var(--warn-bg)}
+.next.due .v{color:var(--warn)}
+/* big actions */
+.big{width:100%;border:0;border-radius:22px;padding:22px 18px;display:flex;align-items:center;gap:16px;cursor:pointer;text-align:left;background:var(--brand);color:#fff;box-shadow:0 6px 18px -8px rgba(91,35,128,.6)}
+:root[data-theme="dark"] .big{color:#17101D}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .big{color:#17101D}}
+.big .e{font-size:44px;line-height:1}
+.big b{display:block;font-size:22px}
+.big span{font-size:15px;opacity:.9}
+.big.alt{background:var(--surface);color:var(--ink);border:1.5px solid var(--line);box-shadow:none;padding:16px 18px}
+.big.alt .e{font-size:32px} .big.alt b{font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center}
+.stat .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .l{font-size:12.5px;color:var(--muted);line-height:1.2}
+.stat.bad{background:var(--bad-bg);border-color:transparent} .stat.bad .n{color:var(--bad)}
+.stat.good{background:var(--ok-bg);border-color:transparent} .stat.good .n{color:var(--ok)}
+/* wizard */
+.step{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.dots{display:flex;gap:6px}.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}.dots i.on{background:var(--brand)}
+h2.q{font-size:28px;line-height:1.15;margin:4px 0 0;text-wrap:balance}
+.hint{color:var(--muted);margin:0;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{border:2px solid var(--line);background:var(--surface);border-radius:20px;padding:18px 10px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;min-height:132px;justify-content:center;text-align:center}
+.choice .e{font-size:52px;line-height:1}
+.choice b{font-size:18px;line-height:1.15}
+.choice small{font-size:13px;color:var(--muted);line-height:1.2}
+.choice.wide{grid-column:1/-1;flex-direction:row;min-height:84px;justify-content:flex-start;padding:14px 18px;gap:16px;text-align:left}
+.choice.wide .e{font-size:40px}
+.choice.ok{border-color:var(--ok);background:var(--ok-bg)} .choice.no{border-color:var(--warn);background:var(--warn-bg)} .choice.bad{border-color:var(--bad);background:var(--bad-bg)}
+.choice:active{transform:scale(.98)}
+.tip{border-radius:var(--r);padding:14px 16px;background:var(--brand-soft);display:flex;gap:12px;align-items:flex-start}
+.tip .e{font-size:30px;line-height:1}
+.tip b{display:block}
+.tip.ok{background:var(--ok-bg)} .tip.ok b{color:var(--ok)}
+.tip.no{background:var(--warn-bg)} .tip.no b{color:var(--warn)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700}
+.field input,.field textarea{font:inherit;font-size:20px;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+.field textarea{font-size:17px;min-height:70px;resize:vertical}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--brand-2)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:10px 14px;font-weight:700;cursor:pointer;min-width:64px;text-align:center}
+.chip small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.chip[aria-pressed="true"] small{color:#fff;opacity:.85}
+:root[data-theme="dark"] .chip[aria-pressed="true"],:root[data-theme="dark"] .chip[aria-pressed="true"] small{color:#17101D}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"],:root:not([data-theme="light"]) .chip[aria-pressed="true"] small{color:#17101D}}
+.row{display:flex;gap:10px}
+.btn{flex:1;border:0;border-radius:16px;padding:16px;font-size:19px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff}
+:root[data-theme="dark"] .btn{color:#17101D}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#17101D}}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);flex:0 0 auto;padding:16px 18px}
+.btn:disabled{opacity:.45}
+/* done */
+.done{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:12px}
+.done .tick{width:96px;height:96px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-size:52px;font-weight:700}
+.done h2{margin:0;font-size:28px}
+.done .next{width:100%;text-align:left}
+/* list */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.item .t{font-variant-numeric:tabular-nums;font-weight:700;min-width:62px}
+.item .w{min-width:0}
+.item .w small{display:block;color:var(--muted);font-size:13px}
+.item .s{font-size:13px;font-weight:700}
+.item .s.ok{color:var(--ok)} .item .s.wait{color:var(--warn)} .item .s.demo{color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:16px}
+.sec{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:6px}
+.foot{color:var(--muted);font-size:13px;text-align:center;margin-top:auto;padding-top:10px}
+.foot b{color:var(--ink)}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;word-break:break-all}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:700;z-index:20;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion: no-preference){.choice,.big,.btn{transition:transform .08s ease}.screen{animation:in .18s ease-out}@keyframes in{from{opacity:.85;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ============ Matty's Toilet Diary — offline-first app ============
+   Plan source: Super Kids Toilet Training Plan (commenced 25 Sep 2026), supervised by Renee Collins, BCBA.
+   Entries are kept on the phone and sent to the Google Sheet whenever there is internet. */
+(function(){
+"use strict";
+const RENEE = "0422 457 363";
+const LEVELS = {1:{min:90,label:"90 min"},2:{min:100,label:"100 min"},3:{min:120,label:"120 min"},4:{min:null,label:"Renee confirms"}};
+const WHY = {
+  timer:{e:"⏰",t:"Timer rang",s:"Scheduled sit",v:"⏰ Timer"},
+  asked:{e:"🙋",t:"Matty asked",s:"Sign or PLQ",v:"🙋 Matty asked"},
+  wake:{e:"🌅",t:"Woke up / poo signs",s:"Poo sit",v:"🌅 Wake-up / poo signs"},
+  accident:{e:"⚠️",t:"Accident",s:"Wet or soiled",v:"⚠️ Accident"}
+};
+const WHAT = {
+  wee:{e:"💧",t:"Wee",v:"💧 Wee",ok:true,wee:true},
+  poo:{e:"💩",t:"Poo",v:"💩 Poo",ok:true},
+  both:{e:"💧💩",t:"Wee + poo",v:"💧💩 Wee + poo",ok:true,wee:true},
+  nothing:{e:"❌",t:"Nothing",v:"❌ Nothing",ok:false},
+  small:{e:"⚠️",t:"Small accident",v:"⚠️ Small accident",acc:true},
+  big:{e:"🚨",t:"Big accident",v:"🚨 Big accident",acc:true}
+};
+
+/* ---------- safe storage ---------- */
+const store = {
+  get(k,d){try{const v=localStorage.getItem("mtd_"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem("mtd_"+k,JSON.stringify(v))}catch(e){}}
+};
+
+/* ---------- connection settings: from link (?api=...&key=...) or saved ---------- */
+let cfg = store.get("cfg",{api:"",key:""});
+try{
+  const q = new URLSearchParams(location.search);
+  if(q.get("api")){cfg={api:q.get("api"),key:q.get("key")||""};store.set("cfg",cfg);
+    history.replaceState(null,"",location.pathname);}
+}catch(e){}
+const connected = ()=>!!cfg.api;
+
+let log = store.get("log",[]);           // all entries made on this phone (kept 14 days)
+let server = store.get("server",null);   // last status from the Google Sheet
+let initials = store.get("initials","");
+let level = store.get("level",1);
+
+/* demo examples so the preview shows a working state (cleared once connected) */
+if(!connected() && !log.length){
+  const now=Date.now(), m=60000;
+  log=[
+    mk({kind:"trip",why:"wake",what:"poo",reward:"yes",ts:now-245*m,initials:"EX",demo:true}),
+    mk({kind:"trip",why:"timer",what:"wee",reward:"yes",ts:now-150*m,initials:"EX",demo:true}),
+    mk({kind:"trip",why:"timer",what:"nothing",reward:"no",ts:now-62*m,initials:"EX",demo:true}),
+    mk({kind:"trip",why:"timer",what:"wee",reward:"yes",ts:now-44*m,initials:"EX",demo:true})
+  ];
+}
+if(connected() && log.some(x=>x.demo)){log=log.filter(x=>!x.demo);save();}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function pad(n){return String(n).padStart(2,"0")}
+function dstr(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function tstr(d){return pad(d.getHours())+":"+pad(d.getMinutes())}
+function nice(ts){const d=new Date(ts);let h=d.getHours(),ap=h>=12?"pm":"am";h=h%12||12;return h+":"+pad(d.getMinutes())+" "+ap}
+function shiftOf(d){const h=d.getHours();return h>=6&&h<14?"AM":h>=14&&h<22?"PM":"Night"}
+function mk(o){const d=new Date(o.ts||Date.now());return Object.assign({id:uid(),date:dstr(d),time:tstr(d),shift:shiftOf(d),level:level,note:"",sent:false},o,{ts:d.getTime()})}
+function save(){const cut=Date.now()-14*864e5;log=log.filter(x=>x.ts>cut||!x.sent);store.set("log",log)}
+
+/* ---------- plan logic ---------- */
+function rewardRule(what){
+  if(WHAT[what].ok) return "yes";
+  if(what==="nothing"||what==="big") return "no";
+  return null; // small accident: depends if he finishes on the toilet
+}
+function check(e){
+  if(e.kind!=="trip") return "✓";
+  const exp = e.what==="small" ? null : rewardRule(e.what);
+  if(exp && e.reward!==exp) return exp==="yes"?"⚠ Reward missed":"⚠ No reward for this";
+  return "✓";
+}
+// wees in a row at the current level, computed in time order (same rule as the Sheet)
+function localStreaks(){
+  const trips=log.filter(x=>x.kind==="trip"||x.kind==="level").sort((a,b)=>a.ts-b.ts);
+  let s=0,g=0,prevL=null;
+  for(const e of trips){
+    if(e.kind==="level"){s=0;prevL=e.level;continue}
+    const w=WHAT[e.what], lvlChg=prevL!=null&&e.level!==prevL;
+    if(w.wee){s=lvlChg?1:s+1}
+    else if(w.acc||(e.what==="nothing"&&e.why!=="wake")||lvlChg){s=0}
+    if(e.why==="timer"&&w.wee) g++; else if(w.acc||(e.why==="timer"&&e.what==="nothing")) g=0;
+    prevL=e.level;
+  }
+  return {streak:s,goal1:g};
+}
+function todayCounts(){
+  const t=dstr(new Date()), today=log.filter(x=>x.kind==="trip"&&x.date===t);
+  return {trips:today.length,acc:today.filter(x=>WHAT[x.what].acc).length,
+    wees:today.filter(x=>WHAT[x.what].wee).length,asked:today.filter(x=>x.why==="asked").length};
+}
+function stats(){
+  const L=localStreaks(), T=todayCounts(), pending=log.some(x=>!x.sent&&!x.demo);
+  if(server && !pending && connected()){
+    return {level:server.level||level,streak:server.streak??L.streak,goal1:server.goal1??L.goal1,
+      acc:Math.max(server.accidentsToday??0,T.acc),trips:Math.max(server.tripsToday??0,T.trips),asked:Math.max(server.askedToday??0,T.asked),
+      lastWeeTs:server.lastWeeTs||null,lastRetryTs:server.lastRetryTs||null};
+  }
+  return {level,streak:L.streak,goal1:L.goal1,acc:T.acc,trips:T.trips,asked:T.asked,lastWeeTs:null,lastRetryTs:null};
+}
+// next toilet time (a guide — the plan's timer on his iPad / Google Home is still the main reminder)
+function nextDue(st){
+  const trips=log.filter(x=>x.kind==="trip").sort((a,b)=>b.ts-a.ts);
+  const lastWee=trips.find(x=>WHAT[x.what].wee||WHAT[x.what].acc);
+  const lastNothing=trips.find(x=>x.what==="nothing"&&x.why!=="wake");
+  let base=lastWee?lastWee.ts:null; if(st.lastWeeTs&&(!base||st.lastWeeTs>base)) base=st.lastWeeTs;
+  let retry=lastNothing?lastNothing.ts:null; if(st.lastRetryTs&&(!retry||st.lastRetryTs>retry)) retry=st.lastRetryTs;
+  const mins=LEVELS[st.level]&&LEVELS[st.level].min;
+  if(retry&&(!base||retry>base)) return {ts:retry+15*60000,why:"Try again — no wee at the last sit (15–20 min)"};
+  if(base&&mins) return {ts:base+mins*60000,why:"Level "+st.level+" timer ("+mins+" min after his last wee)"};
+  return null;
+}
+
+/* ---------- sync with the Google Sheet ---------- */
+let syncing=false;
+async function sync(){
+  if(!connected()||syncing||!navigator.onLine) return;
+  const batch=log.filter(x=>!x.sent&&!x.demo).slice(0,40);
+  syncing=true;
+  try{
+    if(batch.length){
+      const res=await fetch(cfg.api,{method:"POST",body:JSON.stringify({key:cfg.key,entries:batch.map(toRow)})});
+      const j=await res.json();
+      if(j.ok){const done=new Set(j.saved||[]);log.forEach(x=>{if(done.has(x.id))x.sent=true});save()}
+      else if(j.error) toast("Sheet said: "+j.error);
+    }
+    const r=await fetch(cfg.api+(cfg.api.includes("?")?"&":"?")+"action=status&key="+encodeURIComponent(cfg.key));
+    const s=await r.json(); if(s.ok){server=s;store.set("server",s);if(s.level){level=+s.level;store.set("level",level)}}
+  }catch(e){/* offline or blocked — entries stay on the phone and retry */}
+  syncing=false; if(view==="home") render();
+  if(log.some(x=>!x.sent&&!x.demo)&&batch.length===40) setTimeout(sync,500);
+}
+function toRow(e){
+  if(e.kind==="level") return {id:e.id,kind:"level",date:e.date,time:e.time,level:e.level,initials:e.initials,note:e.note,device:dev()};
+  if(e.kind==="daily") return {id:e.id,kind:"daily",date:e.date,time:e.time,osmalax:e.osmalax==="yes"?"✅ Yes":"❌ No",drinks:e.drinks,level:e.level,initials:e.initials,note:e.note,device:dev()};
+  return {id:e.id,kind:"trip",ts:e.ts,date:e.date,time:e.time,shift:e.shift,why:WHY[e.why].v,what:WHAT[e.what].v,reward:e.reward==="yes"?"⭐ Yes":"✋ No",level:e.level,initials:e.initials,note:e.note,check:check(e),device:dev()};
+}
+function dev(){let d=store.get("device","");if(!d){d="phone-"+Math.random().toString(36).slice(2,6);store.set("device",d)}return d}
+window.addEventListener("online",()=>{sync();render()});
+window.addEventListener("offline",()=>render());
+setInterval(sync,45000);
+
+/* ---------- rendering ---------- */
+const $=s=>document.querySelector(s);
+const app=$("#app");
+let view="home", draft=null;
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>t.hidden=true,2600)}
+function go(v){view=v;render();window.scrollTo(0,0)}
+
+function header(){
+  const pend=log.filter(x=>!x.sent&&!x.demo).length;
+  let sync;
+  if(!connected()) sync='<span class="pill sync-demo">○ Demo</span>';
+  else if(pend) sync='<span class="pill sync-wait">⏳ '+pend+' waiting</span>';
+  else sync='<span class="pill sync-ok">✓ '+(navigator.onLine?"Sent":"Saved")+'</span>';
+  return '<div class="top"><div class="who"><h1>Toilet diary</h1><p>Matty · '+(navigator.onLine?"online":"offline, saving here")+'</p></div>'
+    +'<span class="pill lvl">Level '+stats().level+'</span>'+sync
+    +'<button class="iconbtn" id="b-set" aria-label="Settings">⚙️</button></div>';
+}
+
+function homeView(){
+  const st=stats(), nd=nextDue(st), now=Date.now();
+  let h=header();
+  if(!connected()) h+='<div class="banner demo"><span class="e">👀</span><div><b>Preview with example entries.</b> Nothing is sent anywhere until the team leader connects this phone to the Google Sheet with the staff link.</div></div>';
+  if(st.acc>5) h+='<div class="banner bad"><span class="e">🚩</span><div>More than 5 accidents today<span class="sub">Call Renee Collins on <b>'+RENEE+'</b> (Super Kids plan).</span></div></div>';
+  if(st.streak>=3 && st.level<3) h+='<div class="banner up"><span class="e">🔼</span><div>3 wees in a row — time to move up!<span class="sub">Move to Level '+(st.level+1)+' ('+LEVELS[st.level+1].label+') and tell the next shift.</span><div class="act"><button class="btn" id="b-up">Move to Level '+(st.level+1)+'</button></div></div></div>';
+  else if(st.streak>=3 && st.level===3) h+='<div class="banner up"><span class="e">🎉</span><div>3 wees in a row at Level 3<span class="sub">Ask Renee about Level 4.</span></div></div>';
+  if(nd){
+    const due=nd.ts<=now, mins=Math.round((nd.ts-now)/60000);
+    h+='<div class="next'+(due?' due':'')+'"><span class="e">'+(due?"🔔":"⏰")+'</span><span class="k">'+(due?"Toilet time now":"Next toilet time")+'</span>'
+      +'<span class="v">'+nice(nd.ts)+(due?'':' <span style="font-size:17px;color:var(--muted)">in '+(mins>=60?Math.floor(mins/60)+" h "+(mins%60)+" min":mins+" min")+'</span>')+'</span>'
+      +'<span class="h">'+esc(nd.why)+'. Keep using the timer on his iPad / Google Home.</span></div>';
+  }
+  h+='<button class="big" id="b-trip"><span class="e">🚽</span><span><b>Record a toilet trip</b><span>or an accident</span></span></button>';
+  h+='<div class="stats">'
+    +'<div class="stat'+(st.streak>=3?' good':'')+'"><div class="n">'+st.streak+'</div><div class="l">wees in a row<br>(3 = level up)</div></div>'
+    +'<div class="stat'+(st.goal1>=10?' good':'')+'"><div class="n">'+Math.min(st.goal1,10)+'/10</div><div class="l">Goal 1<br>timer wees</div></div>'
+    +'<div class="stat'+(st.acc>5?' bad':'')+'"><div class="n">'+st.acc+'</div><div class="l">accidents<br>today</div></div></div>';
+  h+='<button class="big alt" id="b-daily"><span class="e">💊</span><span><b>Daily: Osmalax & drinks</b><span>Once a day, afternoon</span></span></button>';
+  h+='<button class="big alt" id="b-hist"><span class="e">📋</span><span><b>Today on this phone</b><span>'+todayCounts().trips+' trips recorded</span></span></button>';
+  h+='<p class="foot">Super Kids Toilet Training Plan (2026) · Questions: Renee Collins, BCBA · <b>'+RENEE+'</b></p>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  $("#b-trip").onclick=()=>{draft={kind:"trip",level:stats().level};go("why")};
+  $("#b-daily").onclick=()=>{draft={kind:"daily",level:stats().level,osmalax:null,drinks:null};go("daily")};
+  $("#b-hist").onclick=()=>go("hist");
+  $("#b-set").onclick=()=>go("settings");
+  const up=$("#b-up"); if(up) up.onclick=()=>{level=stats().level+1;store.set("level",level);if(server){server.level=level;server.streak=0;store.set("server",server)}
+    log.push(mk({kind:"level",level:level,initials:initials||"",note:"Moved up to Level "+level}));save();sync();toast("Now on Level "+level+" — "+LEVELS[level].label);render()};
+}
+
+function stepHead(n,total,back){
+  let d='';for(let i=1;i<=total;i++) d+='<i class="'+(i<=n?'on':'')+'"></i>';
+  return '<div class="top"><button class="iconbtn" id="b-back" aria-label="Back">←</button><div class="who"><div class="step"><span>Step '+n+' of '+total+'</span><span class="dots">'+d+'</span></div></div>'
+    +'<button class="iconbtn" id="b-x" aria-label="Cancel">✕</button></div>';
+}
+function wire(back){$("#b-back").onclick=back;$("#b-x").onclick=()=>{draft=null;go("home")}}
+function choice(key,o,cls){return '<button class="choice '+(cls||'')+'" data-k="'+key+'"><span class="e">'+o.e+'</span><b>'+o.t+'</b>'+(o.s?'<small>'+o.s+'</small>':'')+'</button>'}
+
+function whyView(){
+  let h=stepHead(1,4)+'<h2 class="q">Why is Matty on the toilet?</h2><div class="grid">';
+  for(const k of ["timer","asked","wake","accident"]) h+=choice(k,WHY[k],k==="asked"?"ok":k==="accident"?"bad":"");
+  h+='</div><p class="hint">🙋 Matty asked = he used his sign or PLQ. That is Goal 2 — a big win!</p>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  wire(()=>{draft=null;go("home")});
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.why=b.dataset.k;go(draft.why==="accident"?"acc":"what")});
+}
+function whatView(){
+  let h=stepHead(2,4)+'<h2 class="q">What happened on the toilet?</h2><div class="grid">';
+  h+=choice("wee",WHAT.wee,"ok")+choice("poo",WHAT.poo,"ok")+choice("both",WHAT.both,"ok")+choice("nothing",WHAT.nothing,"no");
+  h+='</div><p class="hint">He sits for 2–5 minutes. Music or a quiet toy is OK — no iPad until after the wee.</p>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  wire(()=>go("why"));
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.what=b.dataset.k;
+    if(draft.what==="nothing"){draft.reward="no";go("who")}else go("reward")});
+}
+function accView(){
+  let h=stepHead(2,4)+'<h2 class="q">How big was the accident?</h2><div class="grid">';
+  h+=choice("small",{e:"⚠️",t:"Small",s:"A little bit"},"no")+choice("big",{e:"🚨",t:"Big",s:"Needs a full change"},"bad");
+  h+='</div><div class="tip"><span class="e">🧼</span><div><b>Stay calm. No comments about the accident.</b>Big: clean and change him in the bathroom. Small: offer the toilet to see if he finishes.</div></div>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  wire(()=>go("why"));
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.what=b.dataset.k;
+    if(draft.what==="big"){draft.reward="no";go("who")}else go("finish")});
+}
+function finishView(){
+  let h=stepHead(3,4)+'<h2 class="q">Did he finish on the toilet?</h2><div class="grid">';
+  h+=choice("yes",{e:"🚽",t:"Yes, he finished",s:"Give his reward!"},"ok")+choice("no",{e:"👖",t:"No",s:"Change him"},"no");
+  h+='</div><p class="hint">Super Kids plan: if he finishes on the toilet after a small accident, still reward him.</p>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  wire(()=>go("acc"));
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{
+    if(b.dataset.k==="yes"){go("reward")}else{draft.reward="no";go("who")}});
+}
+function rewardView(){
+  let h=stepHead(3,4)+'<div class="tip ok"><span class="e">⭐</span><div><b>Give his reward now</b>He chooses the iPad or iPod, for 10–20 minutes.</div></div>'
+    +'<h2 class="q">Did he get his reward?</h2><div class="grid">'
+    +choice("yes",{e:"📱",t:"Yes",s:"iPad or iPod"},"ok")+choice("no",{e:"✋",t:"No",s:"Say why in the note"},"no")+'</div>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  wire(()=>go(draft.why==="accident"?"finish":"what"));
+  app.querySelectorAll(".choice").forEach(b=>b.onclick=()=>{draft.reward=b.dataset.k;go("who")});
+}
+function whoView(){
+  const noReward = draft.reward==="no" && (draft.what==="nothing"||draft.what==="big");
+  let h=stepHead(4,4);
+  if(draft.what==="nothing") h+='<div class="tip no"><span class="e">🔁</span><div><b>No reward this time</b>Calm voice, no telling off. He goes back to his activity. Try again in '+(draft.why==="wake"?"15 min":"15–20 min")+'.</div></div>';
+  if(draft.what==="big") h+='<div class="tip no"><span class="e">🧼</span><div><b>No reward for a big accident</b>Clean and change him, then carry on with the timer.</div></div>';
+  h+='<h2 class="q">Check and save</h2>';
+  h+='<div class="field"><label for="f-ini">Your initials</label><input id="f-ini" autocomplete="off" autocapitalize="characters" maxlength="4" value="'+esc(initials)+'" placeholder="e.g. SB"></div>';
+  h+='<div class="field"><label>Level now</label><div class="chips" id="f-lvl">';
+  for(const k of [1,2,3,4]) h+='<button class="chip" data-l="'+k+'" aria-pressed="'+(draft.level===k)+'">Level '+k+'<small>'+LEVELS[k].label+'</small></button>';
+  h+='</div></div><div class="field"><label for="f-note">Note (only if something was different)</label><textarea id="f-note" maxlength="200" placeholder="Optional">'+esc(draft.note||"")+'</textarea></div>';
+  h+='<div class="row"><button class="btn ghost" id="b-back2">Back</button><button class="btn" id="b-save">Save</button></div>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  const back=()=>go(draft.why==="accident"?(draft.what==="big"?"acc":(draft.reward==="yes"?"reward":"finish")):(draft.what==="nothing"?"what":"reward"));
+  wire(back); $("#b-back2").onclick=back;
+  app.querySelectorAll("#f-lvl .chip").forEach(b=>b.onclick=()=>{draft.level=+b.dataset.l;app.querySelectorAll("#f-lvl .chip").forEach(c=>c.setAttribute("aria-pressed",c===b))});
+  const ini=$("#f-ini"), sv=$("#b-save");
+  const okIni=()=>{sv.disabled=!ini.value.trim()}; ini.oninput=okIni; okIni();
+  sv.onclick=()=>{
+    initials=ini.value.trim().toUpperCase();store.set("initials",initials);
+    draft.note=$("#f-note").value.trim();
+    const e=mk({kind:"trip",why:draft.why,what:draft.what,reward:draft.reward,level:draft.level,initials,note:draft.note});
+    if(draft.level!==level){level=draft.level;store.set("level",level)}
+    log.push(e);save();sync();draft={saved:e};go("done");
+  };
+}
+function doneView(){
+  const e=draft&&draft.saved; if(!e){go("home");return}
+  const w=WHAT[e.what], st=stats(), nd=nextDue(st);
+  let msg;
+  if(w.ok&&e.reward==="yes") msg="Great job, Matty! Pack the reward away after 10–20 min and reset the timer.";
+  else if(e.what==="nothing") msg="Try again in "+(e.why==="wake"?"15 min":"15–20 min")+".";
+  else if(w.acc) msg="Accidents are normal while he is learning. Keep following the timer.";
+  else msg="Saved.";
+  let h='<div class="done screen"><div class="tick">✓</div><h2>Saved</h2><p class="hint">'+(connected()?(navigator.onLine?"Sending to the Google Sheet.":"No internet — saved on this phone. It will send by itself."):"Preview — saved on this phone only.")+'</p>'
+    +'<div class="tip'+(w.ok?' ok':' no')+'" style="width:100%;text-align:left"><span class="e">'+(w.ok?"⭐":w.acc?"🧼":"🔁")+'</span><div><b>Next step</b>'+msg+'</div></div>';
+  if(check(e)!=="✓") h+='<div class="banner bad" style="width:100%;text-align:left"><span class="e">⚠</span><div>'+check(e).slice(2)+'<span class="sub">The plan says: reward straight after a wee or poo on the toilet; no reward when nothing happens or after a big accident.</span></div></div>';
+  if(nd) h+='<div class="next" style="width:100%"><span class="e">⏰</span><span class="k">Next toilet time</span><span class="v">'+nice(nd.ts)+'</span><span class="h">'+esc(nd.why)+'.</span></div>';
+  h+='<div class="row" style="width:100%"><button class="btn" id="b-home">Done</button></div></div>';
+  app.innerHTML=h; $("#b-home").onclick=()=>{draft=null;go("home")};
+}
+
+function dailyView(){
+  let h='<div class="top"><button class="iconbtn" id="b-back" aria-label="Back">←</button><div class="who"><h1>Daily check</h1><p>Once a day, in the afternoon</p></div><button class="iconbtn" id="b-x" aria-label="Cancel">✕</button></div>';
+  h+='<h2 class="q">Was Osmalax given today?</h2><p class="hint">In a 200 mL drink. Trained staff only — also write it on the medication chart.</p><div class="grid" id="f-osm">'
+    +choice("yes",{e:"💊",t:"Yes, given"},draft.osmalax==="yes"?"ok":"")+choice("no",{e:"❌",t:"Not given",s:"Add a note why"},draft.osmalax==="no"?"bad":"")+'</div>';
+  h+='<div class="field"><label>Drinks so far today (aim 1.5–2 L)</label><div class="chips" id="f-dr">';
+  for(const v of [0.5,1,1.5,2,2.5]) h+='<button class="chip" data-d="'+v+'" aria-pressed="'+(draft.drinks===v)+'">'+(v===2.5?"2.5+":v)+' L</button>';
+  h+='</div></div><div class="field"><label for="f-ini">Your initials</label><input id="f-ini" autocomplete="off" autocapitalize="characters" maxlength="4" value="'+esc(initials)+'" placeholder="e.g. SB"></div>';
+  h+='<div class="field"><label for="f-note">Handover note</label><textarea id="f-note" maxlength="300" placeholder="Optional — e.g. moved to Level 2 today">'+esc(draft.note||"")+'</textarea></div>';
+  h+='<div class="row"><button class="btn" id="b-save">Save daily check</button></div>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  const keep=()=>{draft.note=$("#f-note").value;initials=$("#f-ini").value.trim().toUpperCase()};
+  wire(()=>{draft=null;go("home")});
+  app.querySelectorAll("#f-osm .choice").forEach(b=>b.onclick=()=>{keep();draft.osmalax=b.dataset.k;render()});
+  app.querySelectorAll("#f-dr .chip").forEach(b=>b.onclick=()=>{keep();draft.drinks=+b.dataset.d;render()});
+  const sv=$("#b-save"), ini=$("#f-ini");
+  const ok=()=>{sv.disabled=!(draft.osmalax&&ini.value.trim())}; ini.oninput=ok; ok();
+  sv.onclick=()=>{keep();store.set("initials",initials);
+    const e=mk({kind:"daily",osmalax:draft.osmalax,drinks:draft.drinks,level:draft.level,initials,note:draft.note.trim()});
+    log.push(e);save();sync();toast(draft.osmalax==="yes"?"Daily check saved":"Saved — tell the team leader Osmalax was not given");draft=null;go("home")};
+}
+
+function histView(){
+  const t=dstr(new Date());
+  const items=log.filter(x=>x.date===t).sort((a,b)=>b.ts-a.ts);
+  let h='<div class="top"><button class="iconbtn" id="b-back" aria-label="Back">←</button><div class="who"><h1>Today on this phone</h1><p>'+items.length+' entries</p></div></div><div class="list">';
+  if(!items.length) h+='<p class="empty">Nothing recorded on this phone today yet. Tap “Record a toilet trip” after his next sit.</p>';
+  for(const e of items){
+    const st=e.demo?'<span class="s demo">example</span>':e.sent?'<span class="s ok">✓ sent</span>':'<span class="s wait">⏳ waiting</span>';
+    if(e.kind==="level") h+='<div class="item"><span class="t">'+nice(e.ts)+'</span><span class="w">🔼 Level '+e.level+'<small>Moved up · '+esc(e.initials)+'</small></span>'+st+'</div>';
+    else if(e.kind==="daily") h+='<div class="item"><span class="t">'+nice(e.ts)+'</span><span class="w">💊 Daily check<small>Osmalax '+(e.osmalax==="yes"?"given":"not given")+(e.drinks?" · drinks "+e.drinks+" L":"")+' · '+esc(e.initials)+'</small></span>'+st+'</div>';
+    else h+='<div class="item"><span class="t">'+nice(e.ts)+'</span><span class="w">'+WHAT[e.what].e+' '+WHAT[e.what].t+'<small>'+WHY[e.why].t+' · '+(e.reward==="yes"?"⭐ reward":"no reward")+' · L'+e.level+' · '+esc(e.initials)+(check(e)!=="✓"?" · "+check(e):"")+'</small></span>'+st+'</div>';
+  }
+  h+='</div>';
+  if(connected()&&log.some(x=>!x.sent&&!x.demo)) h+='<button class="btn" id="b-sync">Send now</button>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  $("#b-back").onclick=()=>go("home");
+  const s=$("#b-sync"); if(s) s.onclick=()=>{if(!navigator.onLine){toast("No internet yet — it will send by itself");return}toast("Sending…");sync().then(()=>go("hist"))};
+}
+
+function settingsView(){
+  let h='<div class="top"><button class="iconbtn" id="b-back" aria-label="Back">←</button><div class="who"><h1>Settings</h1><p>For the team leader</p></div></div>';
+  h+='<div class="field"><label for="f-ini">Initials on this phone</label><input id="f-ini" maxlength="4" value="'+esc(initials)+'"></div>';
+  h+='<div class="sec">Google Sheet connection</div>';
+  h+='<p class="hint">'+(connected()?'✓ Connected. Entries go to the Sheet.':'Not connected. Open the staff link the team leader sent you, or paste the details below.')+'</p>';
+  h+='<div class="field"><label for="f-api">Web app link (from Apps Script)</label><input id="f-api" class="mono" placeholder="https://script.google.com/macros/s/…/exec" value="'+esc(cfg.api)+'"></div>';
+  h+='<div class="field"><label for="f-key">Team key</label><input id="f-key" class="mono" value="'+esc(cfg.key)+'"></div>';
+  h+='<div class="row"><button class="btn" id="b-savecfg">Save</button></div>';
+  h+='<div class="sec">This phone</div><p class="hint">Waiting to send: <b>'+log.filter(x=>!x.sent&&!x.demo).length+'</b> · Phone ID: <span class="mono">'+esc(dev())+'</span></p>';
+  if(log.some(x=>x.demo)) h+='<button class="btn ghost" id="b-cleardemo">Remove example entries</button>';
+  app.innerHTML='<div class="screen" style="display:flex;flex-direction:column;gap:14px">'+h+'</div>';
+  $("#b-back").onclick=()=>go("home");
+  $("#b-savecfg").onclick=()=>{initials=$("#f-ini").value.trim().toUpperCase();store.set("initials",initials);
+    cfg={api:$("#f-api").value.trim(),key:$("#f-key").value.trim()};store.set("cfg",cfg);
+    if(connected()){log=log.filter(x=>!x.demo);save()} toast(connected()?"Saved — connecting…":"Saved");sync();go("home")};
+  const cd=$("#b-cleardemo"); if(cd) cd.onclick=()=>{log=log.filter(x=>!x.demo);save();toast("Examples removed");go("home")};
+}
+
+function render(){
+  ({home:homeView,why:whyView,what:whatView,acc:accView,finish:finishView,reward:rewardView,who:whoView,done:doneView,daily:dailyView,hist:histView,settings:settingsView}[view]||homeView)();
+}
+render(); sync();
+setInterval(()=>{if(view==="home")render()},30000);
+
+/* offline support when installed on a phone (ignored in previews that don't allow it) */
+try{ if("serviceWorker" in navigator && location.protocol==="https:" ) navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
+try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+})();
+</script>
+
+</body>
+</html>
